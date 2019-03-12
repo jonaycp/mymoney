@@ -6,7 +6,7 @@ data = pd.read_csv(
     dayfirst=1, 
     header=0,
     parse_dates=['Date'],  #muy importante, de otra manera lo pilla mal.
-    dtype={"Volume":float},
+    dtype={"Volume":float}, #parseamos la cantidad a un float
     usecols=['Date','Volume', 'Note', 'Type']
     )
 
@@ -20,3 +20,4 @@ print(col_names)
 ###OJO porque las fechas estan como MM/DD/YYYY
 
 #print(data.describe()) #da cierta informacion de los valores numericos
+
