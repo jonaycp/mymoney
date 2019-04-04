@@ -1,3 +1,9 @@
 data/
 Jupynotes.ipynb
+developing.ipynb
+hola.txt
+.ipynb_checkpoints/Jupynotes-checkpoint.ipynb
+mymoney_def_esp.txt
+.*
+*.ipynb
 
