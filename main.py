@@ -176,9 +176,14 @@ class mymoney:
         print(mymonth['Volume'].plot())     
 
     def print_monthbyweeks(self,m,y=2019):
-        mymonth=pd.DataFrame(list(self.selmonth(m)['Volume'])\
-                            ,index=self.selmonth(m)['Week']\
-                            ,columns=['Volume'])
+#         mymonth=pd.DataFrame(list(self.selmonth(m)['Volume'])\
+#                             ,index=self.selmonth(m)['Week']\
+#                             ,columns=[['Volume','periodic']])
+        mymonth=self.data[['Volume','Week','periodic']]
+        mymonth=mymonth[ (mymonth["periodic"]==True) & (mymonth["Volume"] < 0) ]
+        
+        mymonth['Volume']=mymonth['Volume']*(-1)
+        mymonth=mymonth[['Volume','Week']]
         mymonth=mymonth.groupby(by='Week').sum()
         print(mymonth['Volume'].plot(kind="bar"))
         
