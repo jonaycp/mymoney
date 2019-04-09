@@ -221,3 +221,10 @@ class mymoney:
         
     def whatcat(self,cat):
         return self.categories[cat]
+
+    def periodicbymonth(self):
+        myperi=self.data[self.data['periodic']==True]
+        myperi=myperi[['Volume','Month']]
+        myperi=myperi[myperi['Volume'] < 0]
+        myperi=myperi.groupby(by="Month").sum()
+        return myperi
