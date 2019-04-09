@@ -23,7 +23,7 @@ class mymoney:
     #   filepath = the path of the csv file, by default data/Transactions.csv"
     #   initial = if we have only transaction but not the total, 
     #   with initial we can calculate the total after each transaction
-    def __init__(self,myfilepath="data/Transactions.csv",initial=0):
+    def __init__(self,myfilepath="data/Transactions.csv",index_col=True,initial=0):
         
         #loading the file
         self.filepath=myfilepath
@@ -37,6 +37,23 @@ class mymoney:
         #creating new columns
         self.create_cols()
         
+        #Categories
+        self.categories={\
+                   1:'RESTAURANTS'\
+                   ,2:'SALARY'\
+                   ,3:'UTILITIES'\
+                   ,4:'INTERNETSERVICES'\
+                   ,5:'TAKALE'\
+                   ,6:'OCIO'\
+                   ,7:'VIDEOGAMES'\
+                   ,8:'NOMINA'\
+                   ,9:'CURSOS'\
+                   ,10:'CASH'\
+                   ,11:'FEE'\
+                   ,12:'COMPRAS'\
+                   ,13:'VIAJE'\
+                   ,14:'COMIDACASA'\
+                   ,15:'TRANSPORT'}        
         
         
 
@@ -58,7 +75,8 @@ class mymoney:
             return False
 
         
-        
+    def save(self,path="data/mycsv.csv"):
+        self.data.to_csv(path,sep=";",index_label="mmindex")
         
 
     def create_coltotal(self):
@@ -82,15 +100,17 @@ class mymoney:
     
     def create_cols(self):
         #Creating new columns
-        self.create_coltotal()
-        self.create_datacols()
-        self.data['Category1']=0
-        self.data['Category2']=0
+        if self.data.index.name==None:self.data.index.name="mmindex"
+        if 'mmindex' in self.data.columns: self.data=self.data.drop(columns='mmindex')
+        if 'Total' not in self.data.columns: self.create_coltotal()
+        if 'Data' not in self.data.columns: self.create_datacols()
+        if 'Category1' not in self.data.columns: self.data['Category1']=0
+        if 'Categoory2' not in self.data.columns: self.data['Category2']=0
         #This column will have True if the row is an expense, 
         #and False if is not (Salary entry, utilities, etc)
-        self.data['periodic']=False        
+        if 'periodic' not in self.data.columns: self.data['periodic']=False        
         #String field where it will be possible to add a better description for the expense
-        self.data['Description']=""
+        if 'Description' not in self.data.columns: self.data['Description']=""
         
 #functions which returns a dataframe with 
 #selected data according the time
@@ -119,6 +139,27 @@ class mymoney:
                             ,columns=['Volume'])
         
         print(myweek['Volume'].plot(kind='bar'))
+    
+    def print_cat(self,mmonth=0):
+        #creating dataframe
+        mycat=m.data[['Category1','Volume','periodic','Month']]
+        
+        #selecting only expenses
+        mycat=mycat[mycat["periodic"]==False]
+        
+        #if a month is given, we show only that month
+        if mmonth > 0: 
+            mycat=mycat[mycat["Month"]==mmonth]
+        
+        #Changing the signal of Volume we can see better the expenses plots
+        mycat["Volume"]=mycat["Volume"]*(-1)
+        mycat=mycat[["Volume","Category1"]]
+        
+        
+        mycat=mycat.groupby(by="Category1").sum()
+        print(mycat["Volume"].plot(kind='bar'))
+        
+        
         
     def print_year(self,y=2019):
         myyear=pd.DataFrame(list(self.selyear(y)['Volume'])\
@@ -150,7 +191,7 @@ class mymoney:
 #elem = index of element to compare
 #field = Name of the column to match
 #porcent, is a string metric for measuring the difference between two sequences. 
-    def findsimilar(self,elem,field,porcent=100):
+    def findsimilar(self,elem,field="Note",porcent=100):
         if 0 < porcent <= 100 : porcent=porcent/100.
         myresult=[]
         myelem=m.data.iloc[elem][field]
@@ -159,6 +200,9 @@ class mymoney:
                 myresult.append(ind)
         myresult.remove(elem)
         return myresult
+    
+    def findmatch(self,elem,field="Note"):
+        return list(self.data[self.data[field].str.contains(elem)].index)
 
 #Print results from findsimilar
     def printsimilar(self,elem,field,porcent=100):
@@ -169,4 +213,11 @@ class mymoney:
     def setcategory(self,elemlist,cat,level=1):
         if (level == 1): self.data['Category1'][elemlist]=cat
         else: self.data['Category2'][elemlist]=cat
-        return self.data
+        return True
+    
+    def setperiodic(self,elemlist,value=True):
+        self.data['periodic'][elemlist]=value
+        return True
+        
+    def whatcat(self,cat):
+        return self.categories[cat]
